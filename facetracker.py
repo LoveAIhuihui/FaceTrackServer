@@ -58,73 +58,75 @@ args = parser.parse_args()
 os.environ["OMP_NUM_THREADS"] = str(args.max_threads)
 
 # 输出log
-class OutputLog(object):
-    def __init__(self, fh, output):
-        self.fh = fh
-        self.output = output
-    def write(self, buf):
-        if not self.fh is None:
-            self.fh.write(buf)
-        self.output.write(buf)
-        self.flush()
-    def flush(self):
-        if not self.fh is None:
-            self.fh.flush()
-        self.output.flush()
-output_logfile = None
-if args.log_output != "":
-    output_logfile = open(args.log_output, "w")
-sys.stdout = OutputLog(output_logfile, sys.stdout)
-sys.stderr = OutputLog(output_logfile, sys.stderr)
+# class OutputLog(object):
+#     def __init__(self, fh, output):
+#         self.fh = fh
+#         self.output = output
+#     def write(self, buf):
+#         if not self.fh is None:
+#             self.fh.write(buf)
+#         self.output.write(buf)
+#         self.flush()
+#     def flush(self):
+#         if not self.fh is None:
+#             self.fh.flush()
+#         self.output.flush()
+# output_logfile = None
+# if args.log_output != "":
+#     output_logfile = open(args.log_output, "w")
+# sys.stdout = OutputLog(output_logfile, sys.stdout)
+# sys.stderr = OutputLog(output_logfile, sys.stderr)
 
 
-if os.name == 'nt':
-    import dshowcapture
-    if args.blackmagic == 1:
-        dshowcapture.set_bm_enabled(True)
-    if not args.blackmagic_options is None:
-        dshowcapture.set_options(args.blackmagic_options)
-    if not args.priority is None:
-        import psutil
-        classes = [psutil.IDLE_PRIORITY_CLASS, psutil.BELOW_NORMAL_PRIORITY_CLASS, psutil.NORMAL_PRIORITY_CLASS, psutil.ABOVE_NORMAL_PRIORITY_CLASS, psutil.HIGH_PRIORITY_CLASS, psutil.REALTIME_PRIORITY_CLASS]
-        p = psutil.Process(os.getpid())
-        p.nice(classes[args.priority])
+# if os.name == 'nt':
+#     import dshowcapture
+#     if args.blackmagic == 1:
+#         dshowcapture.set_bm_enabled(True)
+#     if not args.blackmagic_options is None:
+#         dshowcapture.set_options(args.blackmagic_options)
+#     if not args.priority is None:
+#         import psutil
+#         classes = [psutil.IDLE_PRIORITY_CLASS, psutil.BELOW_NORMAL_PRIORITY_CLASS, psutil.NORMAL_PRIORITY_CLASS, psutil.ABOVE_NORMAL_PRIORITY_CLASS, psutil.HIGH_PRIORITY_CLASS, psutil.REALTIME_PRIORITY_CLASS]
+#         p = psutil.Process(os.getpid())
+#         p.nice(classes[args.priority])
+#
+# if os.name == 'nt' and (args.list_cameras > 0 or not args.list_dcaps is None):
+#     cap = dshowcapture.DShowCapture()
+#     info = cap.get_info()
+#     unit = 10000000.;
+#     if not args.list_dcaps is None:
+#         formats = {0: "Any", 1: "Unknown", 100: "ARGB", 101: "XRGB", 200: "I420", 201: "NV12", 202: "YV12", 203: "Y800", 300: "YVYU", 301: "YUY2", 302: "UYVY", 303: "HDYC (Unsupported)", 400: "MJPEG", 401: "H264" }
+#         for cam in info:
+#             if args.list_dcaps == -1:
+#                 type = ""
+#                 if cam['type'] == "Blackmagic":
+#                     type = "Blackmagic: "
+#                 print(f"{cam['index']}: {type}{cam['name']}")
+#             if args.list_dcaps != -1 and args.list_dcaps != cam['index']:
+#                 continue
+#             for caps in cam['caps']:
+#                 format = caps['format']
+#                 if caps['format'] in formats:
+#                     format = formats[caps['format']]
+#                 if caps['minCX'] == caps['maxCX'] and caps['minCY'] == caps['maxCY']:
+#                     print(f"    {caps['id']}: Resolution: {caps['minCX']}x{caps['minCY']} FPS: {unit/caps['maxInterval']:.3f}-{unit/caps['minInterval']:.3f} Format: {format}")
+#                 else:
+#                     print(f"    {caps['id']}: Resolution: {caps['minCX']}x{caps['minCY']}-{caps['maxCX']}x{caps['maxCY']} FPS: {unit/caps['maxInterval']:.3f}-{unit/caps['minInterval']:.3f} Format: {format}")
+#     else:
+#         if args.list_cameras == 1:
+#             print("Available cameras:")
+#         for cam in info:
+#             type = ""
+#             if cam['type'] == "Blackmagic":
+#                 type = "Blackmagic: "
+#             if args.list_cameras == 1:
+#                 print(f"{cam['index']}: {type}{cam['name']}")
+#             else:
+#                 print(f"{type}{cam['name']}")
+#     cap.destroy_capture()
+#     sys.exit(0)
 
-if os.name == 'nt' and (args.list_cameras > 0 or not args.list_dcaps is None):
-    cap = dshowcapture.DShowCapture()
-    info = cap.get_info()
-    unit = 10000000.;
-    if not args.list_dcaps is None:
-        formats = {0: "Any", 1: "Unknown", 100: "ARGB", 101: "XRGB", 200: "I420", 201: "NV12", 202: "YV12", 203: "Y800", 300: "YVYU", 301: "YUY2", 302: "UYVY", 303: "HDYC (Unsupported)", 400: "MJPEG", 401: "H264" }
-        for cam in info:
-            if args.list_dcaps == -1:
-                type = ""
-                if cam['type'] == "Blackmagic":
-                    type = "Blackmagic: "
-                print(f"{cam['index']}: {type}{cam['name']}")
-            if args.list_dcaps != -1 and args.list_dcaps != cam['index']:
-                continue
-            for caps in cam['caps']:
-                format = caps['format']
-                if caps['format'] in formats:
-                    format = formats[caps['format']]
-                if caps['minCX'] == caps['maxCX'] and caps['minCY'] == caps['maxCY']:
-                    print(f"    {caps['id']}: Resolution: {caps['minCX']}x{caps['minCY']} FPS: {unit/caps['maxInterval']:.3f}-{unit/caps['minInterval']:.3f} Format: {format}")
-                else:
-                    print(f"    {caps['id']}: Resolution: {caps['minCX']}x{caps['minCY']}-{caps['maxCX']}x{caps['maxCY']} FPS: {unit/caps['maxInterval']:.3f}-{unit/caps['minInterval']:.3f} Format: {format}")
-    else:
-        if args.list_cameras == 1:
-            print("Available cameras:")
-        for cam in info:
-            type = ""
-            if cam['type'] == "Blackmagic":
-                type = "Blackmagic: "
-            if args.list_cameras == 1:
-                print(f"{cam['index']}: {type}{cam['name']}")
-            else:
-                print(f"{type}{cam['name']}")
-    cap.destroy_capture()
-    sys.exit(0)
+
 
 import numpy as np
 import time
@@ -157,20 +159,20 @@ target_port = args.port
 if args.faces >= 40:
     print("Transmission of tracking data over network is not supported with 40 or more faces.")
 
-fps = 0
-dcap = None
-use_dshowcapture_flag = False
-if os.name == 'nt':
-    fps = args.fps
-    dcap = args.dcap
-    use_dshowcapture_flag = True if args.use_dshowcapture == 1 else False
-    input_reader = InputReader(args.capture, args.raw_rgb, args.width, args.height, fps, use_dshowcapture=use_dshowcapture_flag, dcap=dcap)
-    if args.dcap == -1 and type(input_reader) == DShowCaptureReader:
-        fps = min(fps, input_reader.device.get_fps())
-else:
-    input_reader = InputReader(args.capture, args.raw_rgb, args.width, args.height, fps, use_dshowcapture=use_dshowcapture_flag)
-if type(input_reader.reader) == VideoReader:
-    fps = 0
+fps = args.fps
+# dcap = None
+# use_dshowcapture_flag = False
+# if os.name == 'nt':
+#     fps = args.fps
+#     dcap = args.dcap
+#     use_dshowcapture_flag = True if args.use_dshowcapture == 1 else False
+#     input_reader = InputReader(args.capture, args.raw_rgb, args.width, args.height, fps, use_dshowcapture=use_dshowcapture_flag, dcap=dcap)
+#     if args.dcap == -1 and type(input_reader) == DShowCaptureReader:
+#         fps = min(fps, input_reader.device.get_fps())
+# else:
+#     input_reader = InputReader(args.capture, args.raw_rgb, args.width, args.height, fps, use_dshowcapture=use_dshowcapture_flag)
+# if type(input_reader.reader) == VideoReader:
+#     fps = 0
 
 log = None
 out = None
@@ -186,17 +188,17 @@ frame_count = 0
 
 features = ["eye_l", "eye_r", "eyebrow_steepness_l", "eyebrow_updown_l", "eyebrow_quirk_l", "eyebrow_steepness_r", "eyebrow_updown_r", "eyebrow_quirk_r", "mouth_corner_updown_l", "mouth_corner_inout_l", "mouth_corner_updown_r", "mouth_corner_inout_r", "mouth_open", "mouth_wide"]
 
-if args.log_data != "":
-    log = open(args.log_data, "w")
-    log.write("Frame,Time,Width,Height,FPS,Face,FaceID,RightOpen,LeftOpen,AverageConfidence,Success3D,PnPError,RotationQuat.X,RotationQuat.Y,RotationQuat.Z,RotationQuat.W,Euler.X,Euler.Y,Euler.Z,RVec.X,RVec.Y,RVec.Z,TVec.X,TVec.Y,TVec.Z")
-    for i in range(66):
-        log.write(f",Landmark[{i}].X,Landmark[{i}].Y,Landmark[{i}].Confidence")
-    for i in range(66):
-        log.write(f",Point3D[{i}].X,Point3D[{i}].Y,Point3D[{i}].Z")
-    for feature in features:
-        log.write(f",{feature}")
-    log.write("\r\n")
-    log.flush()
+# if args.log_data != "":
+#     log = open(args.log_data, "w")
+#     log.write("Frame,Time,Width,Height,FPS,Face,FaceID,RightOpen,LeftOpen,AverageConfidence,Success3D,PnPError,RotationQuat.X,RotationQuat.Y,RotationQuat.Z,RotationQuat.W,Euler.X,Euler.Y,Euler.Z,RVec.X,RVec.Y,RVec.Z,TVec.X,TVec.Y,TVec.Z")
+#     for i in range(66):
+#         log.write(f",Landmark[{i}].X,Landmark[{i}].Y,Landmark[{i}].Confidence")
+#     for i in range(66):
+#         log.write(f",Point3D[{i}].X,Point3D[{i}].Y,Point3D[{i}].Z")
+#     for feature in features:
+#         log.write(f",{feature}")
+#     log.write("\r\n")
+#     log.flush()
 
 is_camera = args.capture == str(try_int(args.capture))
 
@@ -206,54 +208,72 @@ try:
     target_duration = 0
     if fps > 0:
         target_duration = 1. / float(fps)
-    repeat = args.repeat_video != 0 and type(input_reader.reader) == VideoReader
-    need_reinit = 0
-    failures = 0
-    source_name = input_reader.name
+    # repeat = args.repeat_video != 0 and type(input_reader.reader) == VideoReader
+    # need_reinit = 0
+    # failures = 0
+    # source_name = input_reader.name
+
+##循环
+
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+    # 绑定端口:
+    sock.bind(('127.0.0.1', 11574))
+
+    print('Bind UDP on 11574...')
+
+    while True:
+        # 接收数据:
+        data, addr = sock.recvfrom(400000)
+
+        print('Received from %s:%s.' % addr)
+        # 解码
+        nparr = np.frombuffer(data, np.uint8)
+        # 解码成图片numpy
+        frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+
+        # if not input_reader.is_open() or need_reinit == 1:
+        #     input_reader = InputReader(args.capture, args.raw_rgb, args.width, args.height, fps, use_dshowcapture=use_dshowcapture_flag, dcap=dcap)
+        #     if input_reader.name != source_name:
+        #         print(f"Failed to reinitialize camera and got {input_reader.name} instead of {source_name}.")
+        #         sys.exit(1)
+        #     need_reinit = 2
+        #     time.sleep(0.02)
+        #     continue
+        # if not input_reader.is_ready():
+        #     time.sleep(0.02)
+        #     continue
+
+        # ret, frame = input_reader.read()
 
 
-    while repeat or input_reader.is_open():
-        if not input_reader.is_open() or need_reinit == 1:
-            input_reader = InputReader(args.capture, args.raw_rgb, args.width, args.height, fps, use_dshowcapture=use_dshowcapture_flag, dcap=dcap)
-            if input_reader.name != source_name:
-                print(f"Failed to reinitialize camera and got {input_reader.name} instead of {source_name}.")
-                sys.exit(1)
-            need_reinit = 2
-            time.sleep(0.02)
-            continue
-        if not input_reader.is_ready():
-            time.sleep(0.02)
-            continue
-
-        ret, frame = input_reader.read()
-        if ret and args.mirror_input:
+        if args.mirror_input:
             frame = cv2.flip(frame, 1)
-        if not ret:
-            if repeat:
-                if need_reinit == 0:
-                    need_reinit = 1
-                continue
-            elif is_camera:
-                attempt += 1
-                if attempt > 30:
-                    break
-                else:
-                    time.sleep(0.02)
-                    if attempt == 3:
-                        need_reinit = 1
-                    continue
-            else:
-                break;
 
-        attempt = 0
-        need_reinit = 0
+        # if repeat:
+        #     if need_reinit == 0:
+        #         need_reinit = 1
+        #     continue
+        # elif is_camera:
+        #     attempt += 1
+        #     if attempt > 30:
+        #         break
+        #     else:
+        #         time.sleep(0.02)
+        #         if attempt == 3:
+        #             need_reinit = 1
+        #         continue
+        # else:
+        #     break;
+
+        # attempt = 0
+        # need_reinit = 0
         frame_count += 1
         now = time.time()
 
         if first:
             first = False
             height, width, channels = frame.shape
-            sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             tracker = Tracker(width, height, threshold=args.threshold, max_threads=args.max_threads, max_faces=args.faces, discard_after=args.discard_after, scan_every=args.scan_every, silent=False if args.silent == 0 else True, model_type=args.model, model_dir=args.model_dir, no_gaze=False if args.gaze_tracking != 0 and args.model != -1 else True, detection_threshold=args.detection_threshold, use_retinaface=args.scan_retinaface, max_feature_updates=args.max_feature_updates, static_model=True if args.no_3d_adapt == 1 else False, try_hard=args.try_hard == 1)
             if not args.video_out is None:
                 out = cv2.VideoWriter(args.video_out, cv2.VideoWriter_fourcc('F','F','V','1'), args.video_fps, (width * args.video_scale, height * args.video_scale))
@@ -374,6 +394,7 @@ try:
             if detected and len(faces) < 40:
                 sock.sendto(packet, (target_ip, target_port))
 
+
             if not out is None:
                 video_frame = frame
                 if args.video_scale != 1:
@@ -460,11 +481,13 @@ except KeyboardInterrupt:
     if args.silent == 0:
         print("Quitting")
 
-input_reader.close()
+##循环结束
+
+#input_reader.close()
 if not out is None:
     out.release()
 cv2.destroyAllWindows()
-
+sock.close()
 if args.silent == 0 and tracking_frames > 0:
     average_tracking_time = 1000 * tracking_time / tracking_frames
     print(f"Average tracking time per detected face: {average_tracking_time:.2f} ms")
